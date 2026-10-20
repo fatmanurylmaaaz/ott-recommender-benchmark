@@ -1,0 +1,16 @@
+input_path: "intern_data (1)/part-00000-992043a0-d144-4fca-80d3-54325eae6647-c000.csv"
+output_path: "intern_data (1)/processed/filtered_data.csv"
+
+# Her sütun için include/exclude listesi verilebilir.
+# include verilirse sadece listedeki değerler tutulur.
+# exclude verilirse listedeki değerler atılır.
+filters:
+  country:
+    exclude: ["TR"]
+
+# İki sütunu birbiriyle karşılaştırıp kuralı sağlamayan satırları atar.
+# Örn: watched_duration, duration'dan büyük olamaz (veri hatası).
+rules:
+  - column_a: watched_duration
+    operator: ">"
+    column_b: duration

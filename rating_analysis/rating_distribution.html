@@ -1,0 +1,612 @@
+<title>Tamamlanma Oranı Dağılımı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    color-scheme: light;
+    --page:           #f9f9f7;
+    --surface:        #fcfcfb;
+    --ink-primary:    #0b0b0b;
+    --ink-secondary:  #52514e;
+    --ink-muted:      #898781;
+    --line:           #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --movie:          #2a78d6;
+    --movie-wash:     rgba(42,120,214,0.10);
+    --movie-track:    #cde2fb;
+    --series:         #eb6834;
+    --series-wash:    rgba(235,104,52,0.10);
+    --series-track:   #fad9c9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:           #0d0d0d;
+      --surface:        #1a1a19;
+      --ink-primary:    #ffffff;
+      --ink-secondary:  #c3c2b7;
+      --ink-muted:      #898781;
+      --line:           #2c2c2a;
+      --border:         rgba(255,255,255,0.10);
+      --movie:          #3987e5;
+      --movie-wash:     rgba(57,135,229,0.14);
+      --movie-track:    #184f95;
+      --series:         #d95926;
+      --series-wash:    rgba(217,89,38,0.14);
+      --series-track:   #7a3115;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:           #0d0d0d;
+    --surface:        #1a1a19;
+    --ink-primary:    #ffffff;
+    --ink-secondary:  #c3c2b7;
+    --ink-muted:      #898781;
+    --line:           #2c2c2a;
+    --border:         rgba(255,255,255,0.10);
+    --movie:          #3987e5;
+    --movie-wash:     rgba(57,135,229,0.14);
+    --movie-track:    #184f95;
+    --series:         #d95926;
+    --series-wash:    rgba(217,89,38,0.14);
+    --series-track:   #7a3115;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink-primary);
+    font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .eyebrow {
+    font-family: "Archivo", sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: clamp(26px, 4vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink-secondary);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .lede strong { color: var(--ink-primary); font-weight: 600; }
+
+  code.field {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.92em;
+    background: var(--movie-wash);
+    color: var(--movie);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+  }
+
+  /* Stat tiles */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .tile {
+    background: var(--surface);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tile-label {
+    font-size: 12.5px;
+    color: var(--ink-secondary);
+  }
+  .tile-value {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 24px;
+    letter-spacing: -0.01em;
+  }
+  .tile-value.movie { color: var(--movie); }
+  .tile-value.series { color: var(--series); }
+  .tile-meter {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .tile-meter > span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+  }
+  .tile-meter.movie { background: var(--movie-track); }
+  .tile-meter.movie > span { background: var(--movie); }
+  .tile-meter.series { background: var(--series-track); }
+  .tile-meter.series > span { background: var(--series); }
+
+  /* Chart card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 28px 20px;
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .card-title {
+    font-family: "Archivo", sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 4px;
+  }
+  .card-sub {
+    font-size: 13.5px;
+    color: var(--ink-muted);
+    margin: 0;
+  }
+  .legend {
+    display: flex;
+    gap: 18px;
+    flex-shrink: 0;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--ink-secondary);
+  }
+  .legend-key {
+    width: 16px;
+    height: 2px;
+    border-radius: 1px;
+  }
+  .legend-key.movie { background: var(--movie); }
+  .legend-key.series { background: var(--series); }
+
+  .chart-area { position: relative; }
+  svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+  .gridline { stroke: var(--line); stroke-width: 1; }
+  .axis-text {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    fill: var(--ink-muted);
+  }
+  .xlabel {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 9.5px;
+    fill: var(--ink-muted);
+  }
+  .crosshair {
+    stroke: var(--ink-muted);
+    stroke-width: 1;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .hit-layer { fill: transparent; cursor: crosshair; }
+  .dot { pointer-events: none; }
+
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink-primary);
+    color: var(--page);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translate(-50%, -100%);
+    transition: opacity 0.08s ease;
+    white-space: nowrap;
+    z-index: 5;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  }
+  .tooltip .tt-range {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    color: var(--page);
+    opacity: 0.65;
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+  .tooltip .tt-row { display: flex; align-items: baseline; gap: 8px; }
+  .tooltip .tt-key { width: 10px; height: 2px; border-radius: 1px; flex-shrink: 0; }
+  .tooltip .tt-key.movie { background: var(--movie); }
+  .tooltip .tt-key.series { background: var(--series); }
+  .tooltip .tt-name { color: var(--page); opacity: 0.7; }
+  .tooltip .tt-val {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 600;
+    margin-left: auto;
+  }
+
+  /* Insight callout */
+  .callout {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 22px 26px;
+    display: flex;
+    gap: 18px;
+  }
+  .callout-mark {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--movie);
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  .callout p {
+    margin: 0 0 10px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--ink-secondary);
+    max-width: 66ch;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--ink-primary); font-weight: 600; }
+
+  /* Table */
+  details.table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  details.table-wrap summary {
+    padding: 16px 26px;
+    font-family: "Archivo", sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-primary);
+  }
+  details.table-wrap summary::-webkit-details-marker { display: none; }
+  details.table-wrap summary::before {
+    content: "▸";
+    font-size: 11px;
+    color: var(--ink-muted);
+    transition: transform 0.15s ease;
+  }
+  details.table-wrap[open] summary::before { transform: rotate(90deg); }
+  .table-scroll { overflow-x: auto; border-top: 1px solid var(--line); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 560px;
+  }
+  thead th {
+    text-align: right;
+    font-family: "Source Sans 3", sans-serif;
+    font-weight: 600;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  thead th:first-child, tbody td:first-child { text-align: left; }
+  tbody td {
+    text-align: right;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--ink-secondary); }
+
+  footer {
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    padding-top: 4px;
+  }
+
+  @media (max-width: 560px) {
+    .wrap { padding: 36px 16px 60px; }
+    .card { padding: 20px 16px 16px; }
+    .callout { flex-direction: column; gap: 8px; padding: 18px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <div>
+    <p class="eyebrow">Öneri sistemi · veri hazırlama</p>
+    <h1>İzleyiciler içeriği ne kadar tamamlıyor?</h1>
+    <p class="lede">
+      <code class="field">rating = watched_duration / duration</code> ile türetilen tamamlanma
+      oranının, 3.304.215 kullanıcı–içerik çifti üzerindeki dağılımı — film ve dizi ayrı
+      ayrı incelendi.
+    </p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <span class="tile-label">Toplam çift</span>
+      <span class="tile-value">3.304.215</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Genel ortalama</span>
+      <span class="tile-value">0.341</span>
+      <div class="tile-meter"><span style="width:34.1%; background:var(--ink-muted);"></span></div>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Genel medyan</span>
+      <span class="tile-value">0.139</span>
+      <div class="tile-meter"><span style="width:13.9%; background:var(--ink-muted);"></span></div>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Film medyanı</span>
+      <span class="tile-value movie">0.289</span>
+      <div class="tile-meter movie"><span style="width:28.9%;"></span></div>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Dizi medyanı</span>
+      <span class="tile-value series">0.091</span>
+      <div class="tile-meter series"><span style="width:9.1%;"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <p class="card-title">Tamamlanma oranı dağılımı</p>
+        <p class="card-sub">Her tür için kendi satır sayısına oranlanmış yüzde (%) — 20 eşit aralık</p>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-key movie"></span>Film</span>
+        <span class="legend-item"><span class="legend-key series"></span>Dizi</span>
+      </div>
+    </div>
+    <div class="chart-area" id="chartArea">
+      <svg class="chart" id="chartSvg" viewBox="0 0 780 360" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="callout-mark">GÖZLEM</span>
+    <div>
+      <p>
+        Dağılım <strong>iki uçta yığılıyor</strong>: hem çok düşük hem çok yüksek tamamlanma
+        oranlarında belirgin tepeler var, ortada (0.5–0.9 arası) satır sayısı azalıyor.
+        Bu, izleyicilerin çoğunlukla ya içeriği <strong>hızlıca bırakıp</strong> ya da
+        <strong>büyük ölçüde tamamlayarak</strong> izlediğini gösteriyor.
+      </p>
+      <p>
+        İki tür arasında da net bir fark var: <strong>filmlerde</strong> yüksek tamamlanma ucu
+        güçlü (%20,8'i 0.95–1.0 aralığında), <strong>dizilerde</strong> ise düşük uç baskın
+        (%33,7'si 0–0.05 aralığında) — muhtemelen "birkaç bölüm deneyip bırakma" davranışı.
+      </p>
+      <p>
+        Konuştuğumuz gürültü filtresi açısından: satırların <strong>%7,1'i</strong> 0.01'in,
+        <strong>%15,8'i</strong> 0.02'nin, <strong>%28,9'u</strong> ise 0.05'in altında kalıyor —
+        eşik seçimi bu adımda üzerinde durmamız gereken asıl karar.
+      </p>
+    </div>
+  </div>
+
+  <details class="table-wrap">
+    <summary>Aralık bazlı tam sayılar (20 satır)</summary>
+    <div class="table-scroll">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>Aralık</th>
+            <th>Film %</th>
+            <th>Film adet</th>
+            <th>Dizi %</th>
+            <th>Dizi adet</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+
+  <footer>Kaynak: intern_data (1)/processed/rated_data.csv · watched_duration/duration &gt; anomali temizliği ve tekilleştirme sonrası</footer>
+
+</div>
+
+<script>
+  const labels = ["0.00-0.05","0.05-0.10","0.10-0.15","0.15-0.20","0.20-0.25","0.25-0.30","0.30-0.35","0.35-0.40","0.40-0.45","0.45-0.50","0.50-0.55","0.55-0.60","0.60-0.65","0.65-0.70","0.70-0.75","0.75-0.80","0.80-0.85","0.85-0.90","0.90-0.95","0.95-1.00"];
+  const movieCounts = [507120,168111,115855,83282,66099,57747,48784,42878,40643,34800,31926,29483,25871,25797,26927,23159,23547,36581,173190,410778];
+  const seriesCounts = [448204,250205,194316,68701,47006,77930,33854,12744,17156,8712,24071,6828,12901,6776,8850,6032,14113,4015,10765,78458];
+  const movieTotal = 1972578;
+  const seriesTotal = 1331637;
+
+  const moviePct = movieCounts.map(c => (c / movieTotal) * 100);
+  const seriesPct = seriesCounts.map(c => (c / seriesTotal) * 100);
+
+  // ---- populate table ----
+  const tbody = document.querySelector('#dataTable tbody');
+  labels.forEach((lbl, i) => {
+    const tr = document.createElement('tr');
+    const cells = [
+      lbl,
+      moviePct[i].toFixed(2) + '%',
+      movieCounts[i].toLocaleString('tr-TR'),
+      seriesPct[i].toFixed(2) + '%',
+      seriesCounts[i].toLocaleString('tr-TR'),
+    ];
+    cells.forEach(txt => {
+      const td = document.createElement('td');
+      td.textContent = txt;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  // ---- chart geometry ----
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById('chartSvg');
+  const W = 780, H = 360;
+  const M = { top: 14, right: 14, bottom: 44, left: 40 };
+  const plotW = W - M.left - M.right;
+  const plotH = H - M.top - M.bottom;
+  const n = labels.length;
+  const maxY = Math.ceil(Math.max(...moviePct, ...seriesPct) / 5) * 5; // round to nearest 5
+
+  const xAt = i => M.left + (plotW * i) / (n - 1);
+  const yAt = v => M.top + plotH - (plotH * v) / maxY;
+
+  function el(tag, attrs) {
+    const e = document.createElementNS(svgNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // gridlines + y ticks
+  const ySteps = 4;
+  for (let s = 0; s <= ySteps; s++) {
+    const val = (maxY / ySteps) * s;
+    const y = yAt(val);
+    svg.appendChild(el('line', { class: 'gridline', x1: M.left, x2: W - M.right, y1: y, y2: y }));
+    const t = el('text', { class: 'axis-text', x: M.left - 8, y: y + 3, 'text-anchor': 'end' });
+    t.textContent = val.toFixed(0) + '%';
+    svg.appendChild(t);
+  }
+
+  // x labels (every other bin to avoid crowding)
+  labels.forEach((lbl, i) => {
+    if (i % 2 !== 0) return;
+    const x = xAt(i);
+    const t = el('text', { class: 'xlabel', x, y: H - M.bottom + 16, 'text-anchor': 'middle' });
+    t.textContent = lbl.split('-')[0];
+    svg.appendChild(t);
+  });
+  const axisNote = el('text', { class: 'xlabel', x: W - M.right, y: H - M.bottom + 32, 'text-anchor': 'end' });
+  axisNote.textContent = 'rating (izlenen / toplam süre)';
+  svg.appendChild(axisNote);
+
+  function pathFor(values) {
+    return values.map((v, i) => (i === 0 ? 'M' : 'L') + xAt(i).toFixed(2) + ',' + yAt(v).toFixed(2)).join(' ');
+  }
+  function areaFor(values) {
+    const line = pathFor(values);
+    return line + ` L${xAt(n - 1).toFixed(2)},${yAt(0).toFixed(2)} L${xAt(0).toFixed(2)},${yAt(0).toFixed(2)} Z`;
+  }
+
+  const seriesDefs = [
+    { key: 'series', color: 'var(--series)', wash: 'var(--series-wash)', values: seriesPct, counts: seriesCounts, name: 'Dizi' },
+    { key: 'movie', color: 'var(--movie)', wash: 'var(--movie-wash)', values: moviePct, counts: movieCounts, name: 'Film' },
+  ];
+
+  const dotGroups = {};
+  seriesDefs.forEach(s => {
+    svg.appendChild(el('path', { d: areaFor(s.values), fill: s.wash, stroke: 'none' }));
+  });
+  seriesDefs.forEach(s => {
+    svg.appendChild(el('path', { d: pathFor(s.values), fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    const g = el('g', {});
+    s.values.forEach((v, i) => {
+      const dot = el('circle', { cx: xAt(i), cy: yAt(v), r: 3, fill: s.color, stroke: 'var(--surface)', 'stroke-width': 2, class: 'dot' });
+      g.appendChild(dot);
+    });
+    svg.appendChild(g);
+    dotGroups[s.key] = g;
+  });
+
+  // crosshair
+  const crosshair = el('line', { class: 'crosshair', x1: 0, x2: 0, y1: M.top, y2: H - M.bottom });
+  svg.appendChild(crosshair);
+
+  // hit layer
+  const hit = el('rect', { class: 'hit-layer', x: M.left, y: M.top, width: plotW, height: plotH });
+  svg.appendChild(hit);
+
+  const tooltip = document.getElementById('tooltip');
+  const chartArea = document.getElementById('chartArea');
+
+  function showAt(i) {
+    const x = xAt(i);
+    crosshair.setAttribute('x1', x);
+    crosshair.setAttribute('x2', x);
+    crosshair.style.opacity = 1;
+
+    Object.values(dotGroups).forEach(g => {
+      [...g.children].forEach((c, idx) => c.setAttribute('r', idx === i ? 5 : 3));
+    });
+
+    const rows = seriesDefs.map(s => (
+      `<div class="tt-row">
+         <span class="tt-key ${s.key}"></span>
+         <span class="tt-name">${s.name}</span>
+         <span class="tt-val">${s.values[i].toFixed(2)}% · ${s.counts[i].toLocaleString('tr-TR')}</span>
+       </div>`
+    )).join('');
+    tooltip.innerHTML = `<div class="tt-range">${labels[i]}</div>${rows}`;
+
+    const bbox = svg.getBoundingClientRect();
+    const areaBox = chartArea.getBoundingClientRect();
+    const scale = bbox.width / W;
+    const px = (x * scale) + (bbox.left - areaBox.left);
+    const py = (yAt(Math.max(...seriesDefs.map(s => s.values[i]))) * scale) + (bbox.top - areaBox.top);
+    tooltip.style.left = px + 'px';
+    tooltip.style.top = (py - 12) + 'px';
+    tooltip.style.opacity = 1;
+  }
+
+  function hide() {
+    crosshair.style.opacity = 0;
+    tooltip.style.opacity = 0;
+    Object.values(dotGroups).forEach(g => {
+      [...g.children].forEach(c => c.setAttribute('r', 3));
+    });
+  }
+
+  hit.addEventListener('pointermove', (e) => {
+    const bbox = svg.getBoundingClientRect();
+    const scale = W / bbox.width;
+    const localX = (e.clientX - bbox.left) * scale;
+    let i = Math.round(((localX - M.left) / plotW) * (n - 1));
+    i = Math.max(0, Math.min(n - 1, i));
+    showAt(i);
+  });
+  hit.addEventListener('pointerleave', hide);
+</script>

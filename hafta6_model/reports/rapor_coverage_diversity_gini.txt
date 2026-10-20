@@ -1,0 +1,9 @@
+COVERAGE / DIVERSITY / GINI-INDEX - 5 YONTEM
+=======================================================
+
+Method          Coverage   Diversity        Gini
+SVD               0.2847      0.4934      0.9766
+NMF               0.4906      0.5175      0.9558
+Rastgele          1.0000      0.6700      0.0130
+BPR               0.8287      0.3968      0.7629
+En Populer        0.0241      0.6446      0.9926

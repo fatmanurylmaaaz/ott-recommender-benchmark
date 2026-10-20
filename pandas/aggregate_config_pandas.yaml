@@ -1,0 +1,2 @@
+input_path: "intern_data (1)/processed/filtered_data.csv"
+output_path: "pandas/aggregated_data_pandas.csv"

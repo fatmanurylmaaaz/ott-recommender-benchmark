@@ -1,0 +1,15 @@
+BPR MODEL EGITIMI RAPORU
+============================================================
+
+Kullanici sayisi: 335926
+Icerik sayisi: 1535
+Pozitif etkilesim sayisi: 2044240
+
+factors: 50
+learning_rate: 0.01
+regularization: 0.05
+iterations: 250
+random_state: 42
+
+user_factors shape: (335926, 51)
+item_factors shape: (1535, 51)

@@ -1,0 +1,11 @@
+BPR HIPERPARAMETRE DENEMESI
+============================================================
+
+Config                        HitRate@10  Sure(sn)
+Mevcut (baseline)                 0.2066      15.7
+B - uzun egitim                   0.1575      42.4
+C - az boyut + guclu reg          0.2573      31.2
+D - farkli lr                     0.1513      31.6
+
+En iyi: C - az boyut + guclu reg (HitRate@10=0.2573)
+Parametreler: factors=50, iterations=250, learning_rate=0.01, regularization=0.05

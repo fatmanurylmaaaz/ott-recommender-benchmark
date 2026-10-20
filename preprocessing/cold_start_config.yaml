@@ -1,0 +1,6 @@
+input_path: "intern_data (1)/processed/rated_data.csv"
+output_path: "intern_data (1)/processed/final_data.csv"
+
+# Bu sayilarin altinda etkilesimi olan kullanici/icerikler atilir (cold-start filtresi).
+min_user_interactions: 3
+min_item_interactions: 5

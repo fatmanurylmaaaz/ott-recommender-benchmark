@@ -1,0 +1,10 @@
+input_path: "intern_data (1)/processed/rated_data.csv"
+output_path: "trending/trending.csv"
+
+# Reddit "hot" algoritmasindan uyarlanan zaman-decay sabiti (saniye).
+# 90 gun: log10(vote_count) teriminin (~0-5.67 arasi) buyuklugune denk gelecek
+# sekilde secildi, boylece oy sayisi ile guncellik terimi dengeli yarisiyor.
+decay_seconds: 7776000
+
+# Konsola kac tane trend icerik yazdirilsin (cikti dosyasi hep tam liste).
+top_n: 20

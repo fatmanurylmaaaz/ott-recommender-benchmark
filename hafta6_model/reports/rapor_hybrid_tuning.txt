@@ -1,0 +1,15 @@
+HIBRIT (BPR + POPULERLIK) ALPHA DENEMESI
+==================================================
+
+final_score = alpha * BPR_norm + (1-alpha) * populerlik_norm
+
+Alpha         HitRate@10
+0.3               0.4582
+0.5               0.4635
+0.7               0.4635
+
+Referans - saf BPR (Config C):     0.2671
+Referans - En Populer baseline:      0.4635
+
+En iyi alpha: 0.5 (HitRate@10=0.4635)
+Toplam sure: 81.6sn (335926 kullanici)

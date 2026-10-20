@@ -1,0 +1,18 @@
+RANKING DEGERLENDIRMESI (leave-one-out Precision/Recall/HitRate)
+=================================================================
+
+K: 10
+Degerlendirilen kullanici sayisi: 335926
+Trainset'te bulunamayan (cold) test icerik sayisi: 0
+
+Model      HitRate@K   Precision@K    Recall@K
+SVD           0.0004        0.0000      0.0004
+NMF           0.0037        0.0004      0.0037
+Rastgele      0.0064        0.0006      0.0064
+En Populer      0.4635        0.0463      0.4635
+
+Not: Her kullanicinin test setinde 1 (nadiren 2) ilgili icerigi oldugu icin Recall@K burada pratikte HitRate@K'ya esdegerdir; Precision@K ise K=10 onerinin ne kadarinin isabetli oldugunu gosterir.
+
+YORUM
+-----------------------------------------------------------------
+SVD ve NMF, 'En Populer' baseline'inin (kisisellestirme yapmayan, herkese ayni top-K listeyi oneren) COK gerisinde kaldi - hatta SVD rastgele oneriden bile kotu cikti. Sebep muhtemelen su: SVD/NMF 'rating' (izlenen/toplam sure orani) degerini dogru tahmin etmeye (RMSE/MAE) optimize edildi - bu, 'kullanici bu icerigi izlerse ne kadar tamamlar' sorusuna cevap veriyor, 'kullanici hangi icerigi izleyecek' sorusuna degil. Katalog kucuk (1.535 icerik) ve izlenme dagilimi asiri carpik oldugu icin (bkz. trending/ klasoru), sadece populerlige bakmak bile cok guclu bir sinyal - ama SVD/NMF bu sinyali ogrenmiyor, cunku egitim hedefleri hic bu degildi.

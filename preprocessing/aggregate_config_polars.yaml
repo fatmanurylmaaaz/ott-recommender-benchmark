@@ -1,0 +1,2 @@
+input_path: "intern_data (1)/processed/filtered_data.csv"
+output_path: "intern_data (1)/processed/aggregated_data_polars.csv"

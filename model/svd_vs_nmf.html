@@ -1,0 +1,399 @@
+<title>SVD vs NMF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    color-scheme: light;
+    --page:           #f9f9f7;
+    --surface:        #fcfcfb;
+    --ink-primary:    #0b0b0b;
+    --ink-secondary:  #52514e;
+    --ink-muted:      #898781;
+    --line:           #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --svd:            #2a78d6;
+    --svd-wash:       rgba(42,120,214,0.10);
+    --nmf:            #eb6834;
+    --nmf-wash:       rgba(235,104,52,0.10);
+    --good:           #0ca30c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:           #0d0d0d;
+      --surface:        #1a1a19;
+      --ink-primary:    #ffffff;
+      --ink-secondary:  #c3c2b7;
+      --ink-muted:      #898781;
+      --line:           #2c2c2a;
+      --border:         rgba(255,255,255,0.10);
+      --svd:            #3987e5;
+      --svd-wash:       rgba(57,135,229,0.14);
+      --nmf:            #d95926;
+      --nmf-wash:       rgba(217,89,38,0.14);
+      --good:           #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:           #0d0d0d;
+    --surface:        #1a1a19;
+    --ink-primary:    #ffffff;
+    --ink-secondary:  #c3c2b7;
+    --ink-muted:      #898781;
+    --line:           #2c2c2a;
+    --border:         rgba(255,255,255,0.10);
+    --svd:            #3987e5;
+    --svd-wash:       rgba(57,135,229,0.14);
+    --nmf:            #d95926;
+    --nmf-wash:       rgba(217,89,38,0.14);
+    --good:           #0ca30c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink-primary);
+    font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 24px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .eyebrow {
+    font-family: "Archivo", sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: clamp(26px, 4vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--ink-secondary);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .lede strong { color: var(--ink-primary); font-weight: 600; }
+
+  .verdict {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--svd-wash);
+    padding: 16px 20px;
+  }
+  .verdict-badge {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--surface);
+    background: var(--svd);
+    padding: 5px 10px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .verdict-text {
+    font-size: 14.5px;
+    color: var(--ink-secondary);
+    line-height: 1.5;
+  }
+  .verdict-text strong { color: var(--ink-primary); font-weight: 600; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 26px 26px 18px;
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-family: "Archivo", sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0;
+  }
+  .legend {
+    display: flex;
+    gap: 16px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--ink-secondary);
+  }
+  .legend-key {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  .legend-key.svd { background: var(--svd); }
+  .legend-key.nmf { background: var(--nmf); }
+
+  .chart-area { position: relative; }
+  svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+  .gridline { stroke: var(--line); stroke-width: 1; }
+  .axis-text {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    fill: var(--ink-muted);
+  }
+  .group-label {
+    font-family: "Archivo", sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    fill: var(--ink-primary);
+  }
+  .bar-value {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 12px;
+    fill: var(--ink-primary);
+  }
+  .bar { transition: opacity 0.1s ease; cursor: pointer; }
+  .bar:hover { opacity: 0.85; }
+
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink-primary);
+    color: var(--page);
+    border-radius: 8px;
+    padding: 8px 11px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translate(-50%, -100%);
+    transition: opacity 0.08s ease;
+    white-space: nowrap;
+    z-index: 5;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  }
+  .tooltip .tt-model { font-family: "JetBrains Mono", monospace; opacity: 0.65; font-size: 11px; }
+  .tooltip .tt-val { font-family: "JetBrains Mono", monospace; font-weight: 600; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    text-align: right;
+    font-family: "Source Sans 3", sans-serif;
+    font-weight: 600;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding: 9px 4px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  thead th:first-child, tbody td:first-child { text-align: left; }
+  tbody td {
+    text-align: right;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child { font-family: "Source Sans 3", sans-serif; color: var(--ink-secondary); }
+  .table-scroll { overflow-x: auto; }
+
+  footer {
+    font-size: 12.5px;
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 560px) {
+    .wrap { padding: 36px 16px 56px; }
+    .card { padding: 20px 16px 14px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <div>
+    <p class="eyebrow">Öneri sistemi · model karşılaştırması</p>
+    <h1>SVD, NMF'yi RMSE'de geçiyor</h1>
+    <p class="lede">
+      <code style="font-family:'JetBrains Mono',monospace;background:var(--svd-wash);color:var(--svd);padding:0.1em 0.4em;border-radius:3px;">final_data.csv</code>
+      üzerinde zaman bazlı test setiyle (335.929 etkileşim) eğitilen iki modelin karşılaştırması.
+    </p>
+  </div>
+
+  <div class="verdict">
+    <span class="verdict-badge">SVD kazanıyor</span>
+    <span class="verdict-text">
+      RMSE'de <strong>%5,7 daha iyi</strong> (0,3071 vs 0,3258) — NMF'nin MAE'deki
+      <strong>%1,3'lük</strong> küçük üstünlüğünden çok daha belirgin bir fark.
+    </span>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">RMSE ve MAE karşılaştırması</p>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-key svd"></span>SVD</span>
+        <span class="legend-item"><span class="legend-key nmf"></span>NMF</span>
+      </div>
+    </div>
+    <div class="chart-area" id="chartArea">
+      <svg class="chart" id="chartSvg" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title" style="margin-bottom:14px;">Hiperparametre farkları (Surprise varsayılanları)</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Parametre</th><th>SVD</th><th>NMF</th></tr>
+        </thead>
+        <tbody id="paramTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Kaynak: model/rapor_svd.txt · model/rapor_nmf.txt — random_state=42, zaman bazlı leave-last-out split</footer>
+
+</div>
+
+<script>
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById('chartSvg');
+  const W = 640, H = 300;
+  const M = { top: 20, right: 20, bottom: 40, left: 46 };
+  const plotW = W - M.left - M.right;
+  const plotH = H - M.top - M.bottom;
+
+  const groups = [
+    { label: 'RMSE', svd: 0.3071, nmf: 0.3258 },
+    { label: 'MAE',  svd: 0.2338, nmf: 0.2308 },
+  ];
+  const maxVal = 0.4; // sabit ust sinir - iki grup da ayni olcekte okunsun
+
+  const groupW = plotW / groups.length;
+  const barW = 64;
+  const barGap = 4;
+
+  function el(tag, attrs) {
+    const e = document.createElementNS(svgNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  const yAt = v => M.top + plotH - (plotH * v) / maxVal;
+
+  // gridlines
+  const ySteps = 4;
+  for (let s = 0; s <= ySteps; s++) {
+    const val = (maxVal / ySteps) * s;
+    const y = yAt(val);
+    svg.appendChild(el('line', { class: 'gridline', x1: M.left, x2: W - M.right, y1: y, y2: y }));
+    const t = el('text', { class: 'axis-text', x: M.left - 8, y: y + 3, 'text-anchor': 'end' });
+    t.textContent = val.toFixed(2);
+    svg.appendChild(t);
+  }
+
+  const tooltip = document.getElementById('tooltip');
+  const chartArea = document.getElementById('chartArea');
+  const svgBox = () => svg.getBoundingClientRect();
+  const areaBox = () => chartArea.getBoundingClientRect();
+
+  function showTooltip(evt, model, color, value) {
+    tooltip.innerHTML = `<span class="tt-model">${model}</span><br><span class="tt-val">${value.toFixed(4)}</span>`;
+    const bbox = svgBox(), abox = areaBox();
+    const scale = bbox.width / W;
+    const rect = evt.target.getBoundingClientRect();
+    const px = (rect.left + rect.width / 2) - abox.left;
+    const py = rect.top - abox.top;
+    tooltip.style.left = px + 'px';
+    tooltip.style.top = (py - 10) + 'px';
+    tooltip.style.opacity = 1;
+  }
+  function hideTooltip() { tooltip.style.opacity = 0; }
+
+  groups.forEach((g, gi) => {
+    const groupCenter = M.left + groupW * gi + groupW / 2;
+    const svdX = groupCenter - barGap / 2 - barW;
+    const nmfX = groupCenter + barGap / 2;
+
+    // grup etiketi (RMSE / MAE)
+    const gl = el('text', { class: 'group-label', x: groupCenter, y: H - M.bottom + 24, 'text-anchor': 'middle' });
+    gl.textContent = g.label;
+    svg.appendChild(gl);
+
+    [
+      { x: svdX, val: g.svd, color: 'var(--svd)', model: 'SVD' },
+      { x: nmfX, val: g.nmf, color: 'var(--nmf)', model: 'NMF' },
+    ].forEach(bar => {
+      const y = yAt(bar.val);
+      const h = (M.top + plotH) - y;
+      const rect = el('rect', {
+        class: 'bar', x: bar.x, y: y, width: barW, height: h,
+        rx: 4, ry: 4, fill: bar.color,
+      });
+      rect.addEventListener('pointerenter', (e) => showTooltip(e, bar.model, bar.color, bar.val));
+      rect.addEventListener('pointerleave', hideTooltip);
+      svg.appendChild(rect);
+
+      const label = el('text', { class: 'bar-value', x: bar.x + barW / 2, y: y - 8, 'text-anchor': 'middle' });
+      label.textContent = bar.val.toFixed(4);
+      svg.appendChild(label);
+    });
+  });
+
+  // Hiperparametre tablosu
+  const params = [
+    ['n_factors', '100', '15'],
+    ['n_epochs', '20', '50'],
+    ['lr_all', '0.005', '—'],
+    ['reg_all', '0.02', '—'],
+    ['reg_pu / reg_qi', '—', '0.06'],
+    ['biased (bias terimi)', 'evet', 'hayır'],
+  ];
+  const tbody = document.getElementById('paramTable');
+  params.forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach(txt => {
+      const td = document.createElement('td');
+      td.textContent = txt;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+</script>

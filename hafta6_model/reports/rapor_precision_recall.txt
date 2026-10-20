@@ -1,0 +1,9 @@
+PRECISION@10 / RECALL@10 - 5 YONTEM
+=============================================
+
+Method        Precision@10   Recall@10
+SVD                 0.0000      0.0004
+NMF                 0.0004      0.0037
+Rastgele            0.0006      0.0064
+BPR                 0.0267      0.2671
+En Populer          0.0463      0.4635

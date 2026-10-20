@@ -1,0 +1,12 @@
+SVD MODEL EGITIMI RAPORU
+============================================================
+
+Train: 2044240 etkilesim, 335926 kullanici, 1535 icerik
+Test: 335929 etkilesim (zaman bazli leave-last-out split)
+Rating araligi: (0, 1)
+Random seed: 42
+
+RMSE: 0.3071
+MAE:  0.2338
+
+Ilgili diger rapor: rapor_nmf.txt

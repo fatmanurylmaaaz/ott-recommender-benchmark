@@ -1,0 +1,11 @@
+train_path: "model/train.csv"
+test_path: "model/test.csv"
+
+model_path: "model/nmf_model.pkl"
+report_path: "model/rapor_nmf.txt"
+
+# Rating 0.01-1.0 arasinda (gurultu filtresi + tamamlama orani sinirlari).
+rating_scale: [0, 1]
+
+# Tekrar uretilebilirlik icin sabit random seed.
+random_state: 42

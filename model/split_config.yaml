@@ -1,0 +1,7 @@
+input_path: "intern_data (1)/processed/final_data.csv"
+train_path: "model/train.csv"
+test_path: "model/test.csv"
+
+# Zaman bazli "leave-last-out" split: her kullanicinin EN SON etkilesimi
+# (last_watch'a gore) test setine ayrilir, geri kalani train'de kalir.
+# Boylece "gecmisten gelecegi tahmin etme" senaryosu simule edilir.

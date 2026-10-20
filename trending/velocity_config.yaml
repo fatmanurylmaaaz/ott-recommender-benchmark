@@ -1,0 +1,12 @@
+input_path: "intern_data (1)/processed/rated_data.csv"
+output_path: "trending/velocity.csv"
+
+recent_window_days: 14
+baseline_window_days: 14
+
+# recent_count bu esigin altindaysa gurultu kabul edilip elenir (ör. 1 kisi/0 kisi
+# gibi anlamsiz oranlar yuksek velocity vermesin diye).
+min_recent_count: 5
+
+# Konsola kac tane trend icerik yazdirilsin (cikti dosyasi hep tam liste).
+top_n: 20

@@ -1,0 +1,27 @@
+# ---- Ham + islenmis veri seti (tum klasor) ----
+intern_data (1)/
+intern_data*/
+
+# ---- Tum CSV dosyalari (train/test split'leri, aggregate ciktilari, index esleme tablolari) ----
+*.csv
+
+# ---- Markdown notlari (README haric) ----
+*.md
+!README.md
+
+# ---- Trend raporlari (icerik bazinda izlenme sayilari iceriyor) ----
+trending/rapor_*.txt
+
+# ---- Egitilmis model dosyalari ve sparse matris/top-K onbellekleri (buyuk binary dosyalar) ----
+hafta6_model/data/
+*.pkl
+*.npz
+
+# ---- Ekran goruntuleri zip arsivi ----
+hafta6_model/ekran_goruntuleri.zip
+
+# ---- Python ----
+__pycache__/
+*.pyc
+.venv/
+venv/
